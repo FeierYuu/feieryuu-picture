@@ -77,6 +77,7 @@ public class CosManager {
         picOperations.setRules(rules);
         putObjectRequest.setPicOperations(picOperations);
         return cosClient.putObject(putObjectRequest);
+
     }
 
 
