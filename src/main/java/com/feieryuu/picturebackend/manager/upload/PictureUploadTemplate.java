@@ -1,5 +1,6 @@
 package com.feieryuu.picturebackend.manager.upload;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -10,12 +11,15 @@ import com.feieryuu.picturebackend.exception.ErrorCode;
 import com.feieryuu.picturebackend.manager.CosManager;
 import com.feieryuu.picturebackend.model.dto.file.UploadPictureResult;
 import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
+import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.util.Date;
+import java.util.List;
 
 @Slf4j
 public abstract class PictureUploadTemplate {  
@@ -50,8 +54,16 @@ public abstract class PictureUploadTemplate {
             // 4. 上传图片到对象存储  
             PutObjectResult putObjectResult = cosManager.putPictureObject(uploadPath, file);
             ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
-  
-            // 5. 封装返回结果  
+            //获取图片处理结果
+            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> objectList = processResults.getObjectList();
+            if (CollUtil.isNotEmpty(objectList)){
+                //获取压缩之后的文件信息
+                CIObject compressCiObject = objectList.get(0);
+                //封装压缩图的文件结果
+                return buildResult(originFilename,compressCiObject);
+            }
+            // 5. 封装返回结果
             return buildResult(originFilename, file, uploadPath, imageInfo);  
         } catch (Exception e) {  
             log.error("图片上传到对象存储失败", e);  
@@ -60,8 +72,30 @@ public abstract class PictureUploadTemplate {
             // 6. 清理临时文件  
             deleteTempFile(file);  
         }  
-    }  
-  
+    }
+
+    /**
+     * 封装图片压缩后的返回结果
+     * @param originFilename 原始文件名
+     * @param compressCiObject 压缩后的文件对象
+     * @return
+     */
+    private UploadPictureResult buildResult(String originFilename, CIObject compressCiObject) {
+        UploadPictureResult uploadPictureResult = new UploadPictureResult();
+        int picWidth = compressCiObject.getWidth();
+        int picHeight = compressCiObject.getHeight();
+        double picScale = NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue();
+        // FileUtil.mainName(fileUrl); 会导致获取不到文件名的后缀 采用getName 获取完整的文件名
+        uploadPictureResult.setPicName(FileUtil.getName(originFilename));
+        uploadPictureResult.setPicWidth(picWidth);
+        uploadPictureResult.setPicHeight(picHeight);
+        uploadPictureResult.setPicScale(picScale);
+        uploadPictureResult.setPicFormat(compressCiObject.getFormat());
+        uploadPictureResult.setPicSize(compressCiObject.getSize().longValue());
+        uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + compressCiObject.getKey());
+        return uploadPictureResult;
+    }
+
     /**  
      * 校验输入源（本地文件或 URL）  
      */  
