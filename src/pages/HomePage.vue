@@ -6,7 +6,7 @@ import {
   listPictureVoByPageWithCacheUsingPost
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Waterfall } from 'vue-waterfall-plugin-next' //使用瀑布流组件
 import 'vue-waterfall-plugin-next/dist/style.css'
 
@@ -18,7 +18,7 @@ const loading = ref(true)
 // 搜索条件
 const searchParams = reactive<API.PictureQueryRequest>({
   current: 1,
-  pageSize: 10,
+  pageSize: 12,
   sortField: 'createTime',
   sortOrder: 'descend'
 })
@@ -27,7 +27,7 @@ const searchParams = reactive<API.PictureQueryRequest>({
 const pagination = computed(() => {
   return {
     current: searchParams.current ?? 1,
-    pageSize: searchParams.pageSize ?? 10,
+    pageSize: searchParams.pageSize ?? 12,
     total: total.value,
     onChange: (page: number, pageSize: number) => {
       searchParams.current = page
@@ -122,15 +122,32 @@ const getTagCategoryOptions = async () => {
 
 // 首次进入页面时获取标签和分类选项
 onMounted(() => {
+  // 从URL参数恢复搜索状态
+  if (route.query.fromSearch) {
+    try {
+      const savedSearch = JSON.parse(decodeURIComponent(route.query.fromSearch as string))
+      searchParams.searchText = savedSearch.searchText
+    } catch (e) {
+      console.error('参数解析失败', e)
+    }
+  }
+  fetchData() // 确保触发数据加载
   getTagCategoryOptions()
 })
 
 const router = useRouter()
+const route = useRoute()
 
-// 跳转到图片详情页
+// 跳转详情页方法
 const doClickPicture = (picture: API.PictureVO) => {
+  // 携带当前搜索条件
   router.push({
-    path: `/picture/${picture.id}`
+    path: `/picture/${picture.id}`,
+    query: {
+      fromSearch: encodeURIComponent(JSON.stringify({
+        searchText: searchParams.searchText
+      }))
+    }
   })
 }
 </script>
@@ -208,7 +225,7 @@ const doClickPicture = (picture: API.PictureVO) => {
         v-model:current="searchParams.current"
         v-model:pageSize="searchParams.pageSize"
         :total="total"
-        @change="fetchData"
+        @change="pagination.onChange"
       />
     </div>
   </div>

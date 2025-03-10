@@ -18,22 +18,28 @@ const loading = ref(false)
  */
 const handlerSubmit = async (values: any) => {
   loading.value = true
-
-  const res = await uploadPictureByBatchUsingPost({
-    ...formData
-  })
-  //上传成功
-  if (res.data.code === 0 && res.data.data) {
-    message.success(`创建成功,共 ${res.data.data} 条`)
-    //跳转到主页
-    router.push
-    ({
-      path: `/`
+  try {
+    const res = await uploadPictureByBatchUsingPost({
+      ...formData
     })
-  } else {
-    message.error('创建失败' + res.data.message)
+    //上传成功
+    if (res.data.code === 0 && res.data.data) {
+      message.success(`创建成功,共 ${res.data.data} 条`)
+      //跳转到主页
+      router.push
+      ({
+        path: '/'
+      })
+    } else {
+      message.error('创建失败' + res.data.message)
+    }
+    loading.value = false
+  } catch (e) {
+    message.error('网络环境异常,抓取停止')
+  } finally {
+    loading.value = false
   }
-  loading.value = false
+
 }
 
 

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import { downloadImage, formatSize } from '../utils'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import router from '@/router'
 import { DownloadOutlined } from '@ant-design/icons-vue'
+import { useRoute } from 'vue-router'
 
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 
 const props = defineProps<Props>()
 const picture = ref<API.PictureVO>({})
+const route = useRoute()
 
 //获取图片详情
 const fetchPictureDetail = async () => {
@@ -64,7 +66,7 @@ const doDelete = async () => {
   const res = await deletePictureUsingPost({ id })
   if (res.data.code === 0) {
     message.success('删除成功')
-    router.push('/')
+    handleBack()
   } else {
     message.error('删除失败')
   }
@@ -75,6 +77,21 @@ const doDownload = () => {
   downloadImage(picture.value.url)
 }
 
+
+// 在现有代码中添加返回方法
+const handleBack = () => {
+  // 携带原搜索参数返回
+  if (route.query.fromSearch) {
+    router.push({
+      path: '/',
+      query: {
+        fromSearch: route.query.fromSearch
+      }
+    })
+  } else {
+    router.push('/')
+  }
+}
 
 </script>
 
@@ -152,6 +169,8 @@ const doDownload = () => {
                 <DeleteOutlined />
               </template>
             </a-button>
+            <!-- 在操作按钮区添加返回按钮 -->
+            <a-button @click="handleBack" style="margin-right: 8px">返回列表</a-button>
           </a-space>
 
         </a-card>
