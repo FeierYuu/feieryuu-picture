@@ -56,6 +56,7 @@ const fetchData = async () => {
   if (res.data.data) {
     dataList.value = res.data.data.records ?? []
     total.value = res.data.data.total ?? 0
+
   } else {
     message.error('获取数据失败' + res.data.message)
   }
@@ -150,6 +151,33 @@ const doClickPicture = (picture: API.PictureVO) => {
     }
   })
 }
+
+
+/**
+ * Tags处理 防止后端传来的tags格式错误 导致前端展示错误
+ * @param tags
+ */
+const formatTags = (tags: any) => {
+  // 处理空值情况
+  if (!tags) return []
+
+  // 处理数组类型
+  if (Array.isArray(tags)) return tags
+
+  try {
+    // 处理JSON字符串格式
+    if (typeof tags === 'string' && tags.startsWith('[')) {
+      return JSON.parse(tags)
+    }
+
+    // 处理普通字符串格式
+    return tags.split(/,|、/) // 同时处理中文顿号和英文逗号
+  } catch {
+    // 所有异常情况返回空数组
+    return []
+  }
+}
+
 </script>
 
 <template>
@@ -204,9 +232,11 @@ const doClickPicture = (picture: API.PictureVO) => {
               </template>
               <a-card-meta :title="picture.name">
                 <template #description>
-                  <a-flex>
+                  <a-flex :wrap="true" gap="small" class="tags-container">
                     <a-tag color="green">{{ picture.category ?? '默认' }}</a-tag>
-                    <a-tag v-for="tag in picture.tags" :key="tag">{{ tag }}</a-tag>
+                    <a-tag v-for="tag in formatTags(picture.tags)" :key="tag" class="flex-tag">
+                      {{ tag }}
+                    </a-tag>
                   </a-flex>
                 </template>
               </a-card-meta>
@@ -261,5 +291,29 @@ const doClickPicture = (picture: API.PictureVO) => {
   display: flex;
   justify-content: center;
   margin-top: 16px;
+}
+
+/* 新增样式 */
+.tags-container {
+  flex-wrap: wrap;
+  gap: 4px 8px; /* 行间距4px 列间距8px */
+  align-items: center;
+}
+
+.flex-tag {
+  white-space: normal; /* 允许标签内文字换行 */
+  max-width: 200px; /* 设置最大宽度防止单个标签过长 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-flex; /* 保持标签对齐 */
+}
+
+/* 瀑布流卡片内调整 */
+.waterfall-item :deep(.ant-card-body) {
+  padding: 12px;
+}
+
+.waterfall-item :deep(.ant-card-meta-description) {
+  min-height: 60px; /* 保持卡片高度一致 */
 }
 </style>

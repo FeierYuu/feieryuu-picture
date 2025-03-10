@@ -7,6 +7,17 @@
           创建图片
         </a-button>
         <a-button type="primary" href="/add_picture/batch" target="_blank" ghost>批量创建图片</a-button>
+        <a-popconfirm
+          title="确认要刷新所有缓存吗? 注意:此操作是危险操作!"
+          @confirm="handleClearCache"
+        >
+          <a-button danger :loading="clearing">
+            <template #icon>
+              <ReloadOutlined />
+            </template>
+            {{ clearing ? '正在清理...' : '强制刷新缓存' }}
+          </a-button>
+        </a-popconfirm>
       </a-space>
     </a-flex>
     <div style="margin-bottom: 16px"></div>
@@ -120,6 +131,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import {
+  clearAllCacheUsingPost,
   deletePictureUsingPost, doPictureReviewUsingPost,
   listPictureByPageUsingPost
 
@@ -127,6 +139,9 @@ import {
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { PIC_REVIEW_STATUS_ENUM, PIC_REVIEW_STATUS_MAP, PIC_REVIEW_STATUS_OPTIONS } from '../../constants/picture.ts'
+import {
+  ReloadOutlined
+} from '@ant-design/icons-vue'
 
 const columns = [
   {
@@ -268,6 +283,25 @@ const handlerReview = async (record: API.Picture, reviewStatus: number) => {
     fetchData()
   } else {
     message.error('审核失败' + res.data.message)
+  }
+}
+
+
+const clearing = ref(false)
+
+const handleClearCache = async () => {
+  try {
+    clearing.value = true
+    const { data } = await clearAllCacheUsingPost()
+    if (data.data) {
+      message.success('缓存清理成功')
+      // 可选：重新加载数据
+      location.reload()
+    }
+  } catch (e) {
+    message.error(`操作失败: ${e.response?.data?.message || e.message}`)
+  } finally {
+    clearing.value = false
   }
 }
 
