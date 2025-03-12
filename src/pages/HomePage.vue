@@ -228,7 +228,8 @@ const formatTags = (tags: any) => {
           <div class="waterfall-item" @click="doClickPicture(picture)">
             <a-card hoverable>
               <template #cover>
-                <img :alt="picture.name" :src="picture.url" style="width: 100%; object-fit: cover" />
+                <img :alt="picture.name" :src="picture.thumbnailUrl ?? picture.url"
+                     style="width: 100%; object-fit: cover" />
               </template>
               <a-card-meta :title="picture.name">
                 <template #description>
