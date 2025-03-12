@@ -228,19 +228,17 @@ const formatTags = (tags: any) => {
           <div class="waterfall-item" @click="doClickPicture(picture)">
             <a-card hoverable>
               <template #cover>
-                <img :alt="picture.name" :src="picture.thumbnailUrl ?? picture.url"
-                     style="width: 100%; object-fit: cover" />
-              </template>
-              <a-card-meta :title="picture.name">
-                <template #description>
-                  <a-flex :wrap="true" gap="small" class="tags-container">
+                <!-- 添加标签容器到封面区域 -->
+                <div class="image-overlay">
+                  <a-flex :wrap="true" gap="small" class="tags-container overlay-tags">
                     <a-tag color="green">{{ picture.category ?? '默认' }}</a-tag>
                     <a-tag v-for="tag in formatTags(picture.tags)" :key="tag" class="flex-tag">
                       {{ tag }}
                     </a-tag>
                   </a-flex>
-                </template>
-              </a-card-meta>
+                  <img :alt="picture.name" :src="picture.thumbnailUrl ?? picture.url" />
+                </div>
+              </template>
             </a-card>
           </div>
         </template>
@@ -316,5 +314,67 @@ const formatTags = (tags: any) => {
 
 .waterfall-item :deep(.ant-card-meta-description) {
   min-height: 60px; /* 保持卡片高度一致 */
+}
+
+
+/* 新增玻璃效果样式 */
+.waterfall-item :deep(.ant-card) {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.image-overlay {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.image-overlay img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
+}
+
+.overlay-tags {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.overlay-tags :deep(.ant-tag) {
+  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  pointer-events: auto;
+}
+
+.overlay-tags :deep(.ant-tag-green) {
+  background: rgba(103, 194, 58, 0.25) !important;
+  border-color: rgba(103, 194, 58, 0.3) !important;
+}
+
+/* 悬停效果 */
+.waterfall-item :deep(.ant-card):hover .image-overlay img {
+  transform: scale(1.05);
+}
+
+/* 移除原卡片内容区域样式 */
+.waterfall-item :deep(.ant-card-body) {
+  padding: 0 !important;
+}
+
+/* 深色背景适配 */
+@media (prefers-color-scheme: dark) {
+  .overlay-tags :deep(.ant-tag) {
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+  }
 }
 </style>
