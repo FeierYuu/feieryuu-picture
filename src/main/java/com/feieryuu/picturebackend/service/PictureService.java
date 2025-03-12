@@ -90,4 +90,5 @@ public interface PictureService extends IService<Picture> {
             User loginUser
     );
 
+
 }

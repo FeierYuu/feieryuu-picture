@@ -1,11 +1,13 @@
 package com.feieryuu.picturebackend.model.vo;
 
 import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.feieryuu.picturebackend.model.entity.Picture;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +22,12 @@ public class PictureVO implements Serializable {
     /**  
      * 图片 url  
      */  
-    private String url;  
+    private String url;
+
+    /**
+     * 缩略图 url
+     */
+    private String thumbnailUrl;
   
     /**  
      * 图片名称  
@@ -120,5 +127,7 @@ public class PictureVO implements Serializable {
         // 类型不同，需要转换  
         pictureVO.setTags(JSONUtil.toList(picture.getTags(), String.class));  
         return pictureVO;  
-    }  
+    }
+
+
 }

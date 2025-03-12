@@ -35,6 +35,7 @@ import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  *
@@ -100,6 +102,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         //支持外层传入图片名称
         String picName = uploadPictureResult.getPicName();
         picture.setUrl(uploadPictureResult.getUrl());
+        picture.setThumbnailUrl(uploadPictureResult.getThumbnailUrl());
         if (pictureUploadRequest!=null && StrUtil.isNotBlank(pictureUploadRequest.getPicName())){
             picName= pictureUploadRequest.getPicName();
         }
@@ -110,6 +113,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         picture.setPicScale(uploadPictureResult.getPicScale());
         picture.setPicFormat(uploadPictureResult.getPicFormat());
         picture.setUserId(loginUser.getId());
+
         //补充审核参数
         this.fillReviewParams(picture, loginUser);
         //不为空 则是更新
@@ -318,6 +322,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         return uploadCount;
     }
+
 
     @Override
     public void validPicture(Picture picture) {

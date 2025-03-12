@@ -2,6 +2,8 @@ package com.feieryuu.picturebackend.controller;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.json.JSONConfig;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.feieryuu.picturebackend.annotation.AuthCheck;
@@ -23,6 +25,7 @@ import com.feieryuu.picturebackend.service.PictureService;
 import com.feieryuu.picturebackend.service.UserService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -35,10 +38,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
+import cn.hutool.core.lang.TypeReference;
 @RestController
 @RequestMapping("/picture")
+@Slf4j
 public class PictureController {
 
     @Resource
@@ -242,6 +247,8 @@ public class PictureController {
 
         //先从本地缓存中查询
         String cachedValue = LOCAL_CACHE.getIfPresent(cacheKey);
+
+
         if (cachedValue != null){
             //如果有缓存 直接返回结果
             Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
@@ -266,6 +273,7 @@ public class PictureController {
         String cacheValue = JSONUtil.toJsonStr(picturePage);
         //设置缓存的过期时间 5-10分钟过期 防止缓存雪崩
         int cacheExpireTime = 300 + RandomUtil.randomInt(0, 300);
+
         opsForValue.set(cacheKey, cacheValue,cacheExpireTime, TimeUnit.SECONDS);
 
 
@@ -274,6 +282,33 @@ public class PictureController {
         //获取封装类
         return ResultUtils.success(pictureVOPage);
     }
+
+
+    /**
+     * 清理所有 缓存 危险操作！！！
+     * @return
+     */
+    @PostMapping("/cache/clear")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> clearAllCache() {
+        try {
+            // 1. 清理本地缓存
+            LOCAL_CACHE.invalidateAll();
+
+            // 2. 清理Redis缓存（模式匹配删除）
+            String pattern = "feieryuuPicture:listPictureVOByPage:*";
+            Set<String> keys = stringRedisTemplate.keys(pattern);
+            if (keys != null && !keys.isEmpty()) {
+                stringRedisTemplate.delete(keys);
+            }
+
+            return ResultUtils.success(true);
+        } catch (Exception e) {
+            log.error("缓存清理失败", e);
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "缓存清理失败");
+        }
+    }
+
 
     /**
      * 编辑图片（给用户使用）
