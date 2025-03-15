@@ -91,4 +91,9 @@ public interface PictureService extends IService<Picture> {
     );
 
 
+    /**
+     * 清理图片文件
+     * @param oldPicture
+     */
+    void clearPictureFile(Picture oldPicture);
 }

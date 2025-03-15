@@ -130,6 +130,8 @@ public class PictureController {
         // 操作数据库
         boolean result = pictureService.removeById(id);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        //清理cos存储 图片
+        pictureService.clearPictureFile(oldPicture);
         return ResultUtils.success(true);
     }
 

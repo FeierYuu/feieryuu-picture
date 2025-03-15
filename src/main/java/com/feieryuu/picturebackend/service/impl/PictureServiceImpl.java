@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.feieryuu.picturebackend.exception.BusinessException;
 import com.feieryuu.picturebackend.exception.ErrorCode;
 import com.feieryuu.picturebackend.exception.ThrowUtils;
+import com.feieryuu.picturebackend.manager.CosManager;
 import com.feieryuu.picturebackend.manager.FileManager;
 import com.feieryuu.picturebackend.manager.upload.FilePictureUpload;
 import com.feieryuu.picturebackend.manager.upload.PictureUploadTemplate;
@@ -36,12 +37,15 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -67,6 +71,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private UrlPictureUpload urlPictureUpload;
+
+    @Resource
+    private CosManager cosManager;
     @Override
     public PictureVO uploadPicture(Object inputSource, PictureUploadRequest pictureUploadRequest, User loginUser) {
         //校验参数
@@ -124,6 +131,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
 
         boolean result = this.saveOrUpdate(picture);
+        //todo 如果是更新 可以清理图片资源
+//        if (pictureId !=null){
+//            clearPictureFile(picture);
+//        }
         ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR,"图片上传失败,图片操作失败");
         //保存数据库
         return PictureVO.objToVo(picture);
@@ -323,8 +334,39 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return uploadCount;
     }
 
-
+    /**
+     * 清理图片文件
+     * @param oldPicture
+     */
+    @Async
     @Override
+    public void clearPictureFile(Picture oldPicture) {
+        // 判断该图片是否被多条记录使用
+        String pictureUrl = oldPicture.getUrl();
+        long count = this.lambdaQuery()
+                .eq(Picture::getUrl, pictureUrl)
+                .count();
+        // 有不止一条记录用到了该图片，不清理
+        if (count > 1) {
+            return;
+        }
+        try {
+            // 提取路径部分
+            String picturePath = new URL(pictureUrl).getPath();
+            cosManager.deleteObject(picturePath);
+
+            // 清理缩略图
+            String thumbnailUrl = oldPicture.getThumbnailUrl();
+            if (StrUtil.isNotBlank(thumbnailUrl)) {
+                String thumbnailPath = new URL(thumbnailUrl).getPath();
+                cosManager.deleteObject(thumbnailPath);
+            }
+        } catch (MalformedURLException e) {
+            log.error("处理图片删除时遇到格式错误的 URL。图片 URL: {}", pictureUrl, e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "格式错误的 URL");
+        }
+    }
+        @Override
     public void validPicture(Picture picture) {
         ThrowUtils.throwIf(picture == null, ErrorCode.PARAMS_ERROR);
         // 从对象中取值
