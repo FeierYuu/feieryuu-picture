@@ -2,6 +2,8 @@ package com.feieryuu.picturebackend.model.dto.picture;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 批量抓取图片请求
  */
@@ -23,5 +25,17 @@ public class PictureUploadByBatchRequest {
     /**  
      * 抓取数量  
      */  
-    private Integer count = 10;  
+    private Integer count = 10;
+
+
+
+    /**
+     * 分类
+     */
+    private String category;
+
+    /**
+     * 标签
+     */
+    private List<String> tags;
 }

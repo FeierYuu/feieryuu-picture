@@ -104,8 +104,12 @@ public class PictureController {
             HttpServletRequest request
     ) {
         ThrowUtils.throwIf(pictureUploadByBatchRequest == null, ErrorCode.PARAMS_ERROR);
+
+
         User loginUser = userService.getLoginUser(request);
+
         int uploadCount = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
+
         return ResultUtils.success(uploadCount);
     }
 
