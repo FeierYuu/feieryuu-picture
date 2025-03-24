@@ -25,6 +25,7 @@ import GlobalHeader from '@/components/GlobalHeader.vue'
   margin-bottom: 15px;
   color: unset;
 }
+
 #basicLayout .footer {
   background-color: #efefef;
   padding: 16px;
@@ -35,9 +36,12 @@ import GlobalHeader from '@/components/GlobalHeader.vue'
   text-align: center;
   font-size: 16px;
 }
+
 #basicLayout .content {
   background: linear-gradient(to right, #fefefe, #fff);
   margin-bottom: 28px;
   padding: 20px;
+
 }
 </style>
+

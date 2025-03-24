@@ -2,7 +2,6 @@
 import { type Component, computed, onMounted, reactive, ref } from 'vue'
 import {
   listPictureTagCategoryUsingGet,
-  listPictureVoByPageUsingPost,
   listPictureVoByPageWithCacheUsingPost
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
@@ -55,7 +54,8 @@ const fetchData = async () => {
   const res = await listPictureVoByPageWithCacheUsingPost(params)
   if (res.data.data) {
     dataList.value = res.data.data.records ?? []
-    total.value = res.data.data.total ?? 0
+    //（强制转换为数字）
+    total.value = Number(res.data.data.total) ?? 0
 
   } else {
     message.error('获取数据失败' + res.data.message)
@@ -230,13 +230,13 @@ const formatTags = (tags: any) => {
               <template #cover>
                 <!-- 添加标签容器到封面区域 -->
                 <div class="image-overlay">
-                  <a-flex :wrap="true" gap="small" class="tags-container overlay-tags">
-                    <a-tag color="green">{{ picture.category ?? '默认' }}</a-tag>
+                  <a-flex wrap="warp" gap="small" class="tags-container overlay-tags">
+                    <a-tag color="green">{{ picture.category || '默认' }}</a-tag>
                     <a-tag v-for="tag in formatTags(picture.tags)" :key="tag" class="flex-tag">
                       {{ tag }}
                     </a-tag>
                   </a-flex>
-                  <img :alt="picture.name" :src="picture.thumbnailUrl ?? picture.url" />
+                  <img :alt="picture.name" :src="picture.url ?? picture.thumbnailUrl" />
                 </div>
               </template>
             </a-card>
@@ -269,6 +269,7 @@ const formatTags = (tags: any) => {
   max-width: 580px;
   margin: 0 auto 16px;
 }
+
 
 #homePage .tag-bar {
   margin-bottom: 16px;
@@ -356,8 +357,8 @@ const formatTags = (tags: any) => {
 }
 
 .overlay-tags :deep(.ant-tag-green) {
-  background: rgba(103, 194, 58, 0.25) !important;
-  border-color: rgba(103, 194, 58, 0.3) !important;
+  background: rgb(83 233 15 / 49%) !important;
+  border-color: rgba(47, 115, 9, 0.3) !important;
 }
 
 /* 悬停效果 */
