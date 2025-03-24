@@ -2,10 +2,7 @@ package com.feieryuu.picturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.feieryuu.picturebackend.model.dto.picture.PictureQueryRequest;
-import com.feieryuu.picturebackend.model.dto.picture.PictureReviewRequest;
-import com.feieryuu.picturebackend.model.dto.picture.PictureUploadByBatchRequest;
-import com.feieryuu.picturebackend.model.dto.picture.PictureUploadRequest;
+import com.feieryuu.picturebackend.model.dto.picture.*;
 import com.feieryuu.picturebackend.model.dto.user.UserQueryRequest;
 import com.feieryuu.picturebackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -34,6 +31,9 @@ public interface PictureService extends IService<Picture> {
                             User loginUser);
 
 
+    void deletePicture(long pictureId, User loginUser);
+
+    void editPicture(PictureEditRequest pictureEditRequest, User loginUser);
 
     /**
      * 获取查询条件
@@ -96,4 +96,11 @@ public interface PictureService extends IService<Picture> {
      * @param oldPicture
      */
     void clearPictureFile(Picture oldPicture);
+
+    /**
+     * 校验空间图库的权限
+     * @param loginUser
+     * @param picture
+     */
+    void checkPictureAuth(User loginUser, Picture picture);
 }

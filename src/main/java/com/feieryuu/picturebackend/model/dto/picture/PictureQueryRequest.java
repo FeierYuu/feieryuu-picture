@@ -1,5 +1,7 @@
 package com.feieryuu.picturebackend.model.dto.picture;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.feieryuu.picturebackend.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -88,6 +90,14 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
      */
     private Long reviewerId;
 
+    /**
+     * 空间id
+     */
+    private Long spaceId=null;
+    /**
+     * 是否只查询spaceId 为null 的数据
+     */
+    private boolean nullSpaceId;
 
     private static final long serialVersionUID = 1L;  
 }
