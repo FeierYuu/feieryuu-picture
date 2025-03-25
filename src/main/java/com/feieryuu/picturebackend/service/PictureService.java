@@ -71,12 +71,17 @@ public interface PictureService extends IService<Picture> {
     void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
 
     /**
-     * 审核参数
+     * 公共图库审核参数
      * @param picture
      * @param loginUser
      */
     void fillReviewParams(Picture picture, User loginUser);
 
+    /**
+     *  私有图库审核参数
+     * @param picture
+     */
+    void spaceFillReviewParams(Picture picture, User loginUser);
 
     /**
      * 批量抓取和创建图片

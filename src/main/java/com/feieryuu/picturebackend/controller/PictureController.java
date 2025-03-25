@@ -252,6 +252,7 @@ public class PictureController {
      * 分页获取图片列表（封装类）新增缓存
      */
     @PostMapping("/list/page/vo/cache")
+    @Deprecated
     public BaseResponse<Page<PictureVO>> listPictureVOByPageWithCache(@RequestBody PictureQueryRequest pictureQueryRequest,
                                                              HttpServletRequest request) {
 
