@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import { downloadImage, formatSize } from '../utils'
@@ -78,17 +78,21 @@ const doDownload = () => {
 }
 
 
-// 在现有代码中添加返回方法
+// 返回首页
 const handleBack = () => {
-  // 携带原搜索参数返回
-  if (route.query.fromSearch) {
+  try {
+    const searchText = typeof route.query.searchText === 'string'
+      ? route.query.searchText
+      : ''
+
     router.push({
       path: '/',
       query: {
-        fromSearch: route.query.fromSearch
+        searchText: searchText
       }
     })
-  } else {
+  } catch (e) {
+    console.error('返回失败', e)
     router.push('/')
   }
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import GlobalHeader from '@/components/GlobalHeader.vue'
+import GlobalSider from '@/components/GlobalSider.vue'
 </script>
 
 <template>
@@ -8,9 +9,13 @@ import GlobalHeader from '@/components/GlobalHeader.vue'
       <a-layout-header class="header">
         <GlobalHeader></GlobalHeader>
       </a-layout-header>
-      <a-layout-content class="content">
-        <router-view />
-      </a-layout-content>
+      <a-layout>
+        <global-sider class="sider"></global-sider>
+        <a-layout-content class="content">
+          <router-view />
+        </a-layout-content>
+      </a-layout>
+
       <a-layout-footer class="footer">
         <a href="https://github.com/FeierYuu" target="_blank"> 云图库 by 程序员FeierYuu </a>
       </a-layout-footer>
@@ -22,7 +27,7 @@ import GlobalHeader from '@/components/GlobalHeader.vue'
 #basicLayout .header {
   background-color: white;
   padding-inline: 16px;
-  margin-bottom: 15px;
+  margin-bottom: 1px;
   color: unset;
 }
 
@@ -40,8 +45,20 @@ import GlobalHeader from '@/components/GlobalHeader.vue'
 #basicLayout .content {
   background: linear-gradient(to right, #fefefe, #fff);
   margin-bottom: 28px;
-  padding: 20px;
+  padding: 28px;
 
 }
+
+#basicLayout .sider {
+  background: #fff;
+  border-right: 0.5px solid #eee;
+  padding-top: 10px;
+}
+
+#basicLayout :deep(.ant-menu-root) {
+  border-bottom: none !important;
+  border-inline-end: none !important;
+}
+
 </style>
 

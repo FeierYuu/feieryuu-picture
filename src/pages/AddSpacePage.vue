@@ -7,7 +7,7 @@ import { message } from 'ant-design-vue'
 import router from '@/router'
 import { useRoute } from 'vue-router'
 import { SPACE_LEVEL_OPTIONS } from '@/constants/space.ts'
-import { formatSize } from './utils'
+import { formatSize } from '../utils'
 
 const space = ref<API.SpaceVO>()
 const spaceForm = reactive<API.SpaceAddRequest | API.SpaceEditRequest>({})

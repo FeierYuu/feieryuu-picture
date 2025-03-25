@@ -130,10 +130,14 @@ const doLogOut = async () => {
                 </a-avatar>
                 {{ loginUserStore.loginUser.userName }}
               </a-space>
-
-
               <template #overlay>
                 <a-menu>
+                  <a-menu-item>
+                    <router-link to="/my_space">
+                      <user-outlined />
+                      我的空间
+                    </router-link>
+                  </a-menu-item>
                   <a-menu-item @click="doLogOut">
                     <LogoutOutlined />
                     退出登入

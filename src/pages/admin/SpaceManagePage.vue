@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import {
+  deleteSpaceUsingPost,
   listSpaceByPageUsingPost
 } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { SPACE_LEVEL_MAP, SPACE_LEVEL_OPTIONS } from '../../constants/space.ts'
 import { formatSize } from '../../utils'
-import { PIC_REVIEW_STATUS_OPTIONS } from '@/constants/picture.ts'
 
 const columns = [
   {
@@ -100,6 +100,20 @@ const doTableChange = (page: any) => {
   searchParams.current = page.current
   searchParams.pageSize = page.pageSize
   fetchData()
+}
+
+//删除数据
+const doDelete = async (id: string) => {
+  if (!id) {
+    return
+  }
+  const res = await deleteSpaceUsingPost({ id })
+  if (res.data.code === 0) {
+    message.success('删除成功')
+    fetchData()
+  } else {
+    message.error('删除失败' + res.data.message)
+  }
 }
 
 
