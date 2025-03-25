@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PictureUpload from '@/components/PictureUpload.vue'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import {
   editPictureUsingPost,
   getPictureVoByIdUsingGet,
@@ -14,6 +14,12 @@ import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditRequest>({})
 const uploadType = ref<'file' | 'url'>('file')
+
+// 空间 id
+const spaceId = computed(() => {
+  return route.query?.spaceId
+})
+
 
 /**
  * 图片上传成功 回填图片信息
@@ -36,6 +42,7 @@ const handlerSubmit = async (values: any) => {
   }
   const res = await editPictureUsingPost({
     id: pictureId,
+    spaceId: spaceId.value,
     ...values
   })
   //上传成功
@@ -116,15 +123,19 @@ onMounted(() => {
 <template>
   <div id="addPicturePage">
     <h2 style="margin-bottom: 16px">{{ route.query?.id ? '修改图片' : '创建图片' }}</h2>
+    <a-typography-paragraph v-if="spaceId" type="secondary">
+      保存至空间：<a :href="`/space/${spaceId}`" target="_blank">{{ spaceId }}</a>
+    </a-typography-paragraph>
+
     <!--选择上传方式-->
     <a-tabs v-model:activeKey="uploadType">
       <a-tab-pane key="file" tab="文件上传">
         <!--    图片上传组件-->
-        <picture-upload :picture="picture" :on-success="onSuccess"></picture-upload>
+        <picture-upload :picture="picture" :spaceId="spaceId" :on-success="onSuccess"></picture-upload>
       </a-tab-pane>
       <a-tab-pane key="url" tab="URL上传" force-render>
         <!--    url 图片上传组件-->
-        <UrlPictureUpload :picture="picture" :on-success="onSuccess"></UrlPictureUpload>
+        <UrlPictureUpload :picture="picture" :spaceId="spaceId" :on-success="onSuccess"></UrlPictureUpload>
       </a-tab-pane>
     </a-tabs>
 

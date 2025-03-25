@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type Component, computed, onMounted, reactive, ref } from 'vue'
 import {
-  listPictureTagCategoryUsingGet,
+  listPictureTagCategoryUsingGet, listPictureVoByPageUsingPost,
   listPictureVoByPageWithCacheUsingPost
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
@@ -52,7 +52,7 @@ const fetchData = async () => {
       params.tags?.push(tagList.value[index].name)
     }
   })
-  const res = await listPictureVoByPageWithCacheUsingPost(params)
+  const res = await listPictureVoByPageUsingPost(params)
   if (res.data.data) {
     dataList.value = res.data.data.records ?? []
     //（强制转换为数字）
