@@ -113,23 +113,50 @@ const getTagCategoryOptions = async () => {
 
 const route = useRoute()
 //保存搜索框里输入的搜索参数
-const restoreSearchText = () => {
+const restoreSearchState = () => {
   try {
-    const searchText = route.query.searchText
-    if (typeof searchText === 'string') {
-      searchParams.searchText = decodeURIComponent(searchText)
+    const stateParam = route.query.state
+    if (typeof stateParam === 'string') {
+      const state = JSON.parse(decodeURIComponent(stateParam))
+
+      // 恢复搜索文本
+      if (typeof state.searchText === 'string') {
+        searchParams.searchText = state.searchText
+      }
+
+      // 恢复分类
+      if (typeof state.category === 'string') {
+        selectedCategory.value = state.category
+      }
+
+      // 恢复标签选中状态（确保标签数据已加载）
+      if (Array.isArray(state.tags) && tagList.value.length > 0) {
+        selectedTagList.value = tagList.value.map(tag =>
+          state.tags.includes(tag.name)
+        )
+      }
     }
   } catch (e) {
-    console.warn('搜索参数恢复失败', e)
+    console.warn('恢复搜索状态失败', e)
+    // 重置为默认状态
     searchParams.searchText = ''
+    selectedCategory.value = 'all'
+    selectedTagList.value = new Array(tagList.value.length).fill(false)
   }
 }
-
+// 🟢 新增：获取当前筛选状态
+const getCurrentSearchState = () => ({
+  searchText: searchParams.searchText,
+  category: selectedCategory.value,
+  tags: tagList.value
+    .filter((_, index) => selectedTagList.value[index])
+    .map(tag => tag.name)
+})
 // 页面加载时获取数据
-onMounted(() => {
-  fetchData()
-  getTagCategoryOptions()
-  restoreSearchText()
+onMounted(async () => {
+  await getTagCategoryOptions() // 先获取标签数据
+  restoreSearchState()          // 再恢复状态
+  fetchData()                  // 最后获取数据
 })
 
 
@@ -170,7 +197,7 @@ onMounted(() => {
     </div>
 
     <!-- 图片列表 - 使用瀑布流组件 -->
-    <PictureList :data-list="dataList" :loading="loading" :search-text="searchParams.searchText"></PictureList>
+    <PictureList :data-list="dataList" :loading="loading" :search-state="getCurrentSearchState()"></PictureList>
 
     <!-- 分页 -->
     <div class="pagination-container">

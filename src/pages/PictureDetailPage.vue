@@ -81,15 +81,11 @@ const doDownload = () => {
 // 返回首页
 const handleBack = () => {
   try {
-    const searchText = typeof route.query.searchText === 'string'
-      ? route.query.searchText
-      : ''
-
+    // 保持参数原样传递
+    const state = route.query.state
     router.push({
       path: '/',
-      query: {
-        searchText: searchText
-      }
+      query: { state: typeof state === 'string' ? state : undefined }
     })
   } catch (e) {
     console.error('返回失败', e)

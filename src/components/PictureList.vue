@@ -4,8 +4,12 @@ import router from '@/router'
 
 interface Props {
   dataList?: API.PictureVO[]
-  loading?: boolean,
-  searchText: string // 接收主页传递的搜索参数
+  loading?: boolean
+  searchState: {
+    searchText: string
+    category: string
+    tags: string[]
+  }
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,12 +21,10 @@ const props = withDefaults(defineProps<Props>(), {
 // 跳转详情页方法
 const doClickPicture = (picture: API.PictureVO) => {
   try {
-    const encodedText = encodeURIComponent(props.searchText || '')
+    const state = encodeURIComponent(JSON.stringify(props.searchState))
     router.push({
       path: `/picture/${picture.id}`,
-      query: {
-        searchText: encodedText
-      }
+      query: { state }
     })
   } catch (e) {
     console.error('跳转失败', e)
