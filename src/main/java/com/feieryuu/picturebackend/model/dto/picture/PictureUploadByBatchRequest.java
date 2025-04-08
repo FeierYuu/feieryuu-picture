@@ -38,4 +38,9 @@ public class PictureUploadByBatchRequest {
      * 标签
      */
     private List<String> tags;
+
+    /**
+     * 下载源
+     */
+    private String source;
 }

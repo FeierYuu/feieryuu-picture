@@ -7,6 +7,8 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.feieryuu.picturebackend.annotation.AuthCheck;
+import com.feieryuu.picturebackend.api.imageSearch.ImageSearchApiFacade;
+import com.feieryuu.picturebackend.api.imageSearch.model.ImageSearchResult;
 import com.feieryuu.picturebackend.common.BaseResponse;
 import com.feieryuu.picturebackend.common.DeleteRequest;
 import com.feieryuu.picturebackend.common.ResultUtils;
@@ -113,7 +115,7 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
 
         int uploadCount = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
-
+        System.out.println(pictureUploadByBatchRequest.getSource());
         return ResultUtils.success(uploadCount);
     }
 
@@ -222,7 +224,7 @@ public class PictureController {
         long current = pictureQueryRequest.getCurrent();
         long size = pictureQueryRequest.getPageSize();
         // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR,"一次性最多查看20张图片");
 
         //空间权限校验
         Long spaceId = pictureQueryRequest.getSpaceId();
@@ -245,6 +247,23 @@ public class PictureController {
                 pictureService.getQueryWrapper(pictureQueryRequest));
         // 获取封装类
         return ResultUtils.success(pictureService.getPictureVOPage(picturePage, request));
+    }
+
+
+    /**
+     * 以图搜图
+     */
+    @PostMapping("/search/picture")
+    public BaseResponse<List<ImageSearchResult>> searchPictureByPicture(@RequestBody SearchPictureByPictureRequest searchPictureByPictureRequest) {
+        ThrowUtils.throwIf(searchPictureByPictureRequest == null, ErrorCode.PARAMS_ERROR);
+        Long pictureId = searchPictureByPictureRequest.getPictureId();
+        ThrowUtils.throwIf(pictureId == null || pictureId <= 0, ErrorCode.PARAMS_ERROR);
+        Picture oldPicture = pictureService.getById(pictureId);
+        //由于 百度以图搜图不支持webp格式 会导致搜索失败 所以这里采用腾讯云自带图片处理 把图片转成png格式
+        String url =oldPicture.getUrl()+"?imageMogr2/format/png";
+        ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
+        List<ImageSearchResult> resultList = ImageSearchApiFacade.searchImage(url);
+        return ResultUtils.success(resultList);
     }
 
 
