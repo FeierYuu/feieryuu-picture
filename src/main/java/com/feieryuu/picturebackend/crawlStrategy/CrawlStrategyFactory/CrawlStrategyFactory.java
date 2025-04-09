@@ -18,10 +18,13 @@ public class CrawlStrategyFactory {
     @Autowired
     public CrawlStrategyFactory(
             @Qualifier("bingStrategy") ImageCrawlStrategy bingStrategy,
-            @Qualifier("bizhiStrategy") ImageCrawlStrategy bizhiStrategy) {
+            @Qualifier("bizhiStrategy") ImageCrawlStrategy bizhiStrategy,
+            @Qualifier("wallhereStrategy") ImageCrawlStrategy wallhereStrategy) {
+
         strategyMap = new HashMap<>();
         strategyMap.put("bing", bingStrategy);
         strategyMap.put("bizhi", bizhiStrategy);
+        strategyMap.put("wallhere", wallhereStrategy);
     }
 
     public ImageCrawlStrategy getStrategy(String source) {
