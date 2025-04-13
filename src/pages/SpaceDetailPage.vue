@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
-import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
+import { listPictureVoByPageUsingPost, searchPictureByColorUsingPost } from '@/api/pictureController.ts'
 import { formatSize } from '@/utils'
 import PictureList from '@/components/PictureList.vue'
+import PictureSearchForm from '@/components/PictureSearchForm.vue'
+import { ColorPicker } from 'vue3-colorpicker'
+import 'vue3-colorpicker/style.css'
 
 const props = defineProps<{ id: string | number }>()
 const space = ref<API.SpaceVO>({})
@@ -15,7 +18,7 @@ const total = ref(0)
 const loading = ref(true)
 
 // 搜索条件
-const searchParams = reactive<API.PictureQueryRequest>({
+const searchParams = ref<API.PictureQueryRequest>({
   current: 1,
   pageSize: 12,
   sortField: 'createTime',
@@ -32,8 +35,8 @@ const handleDeleteSuccess = (deletedId: string) => {
   // fetchData()
 
   // 如果当前页数据为空且不是第一页，自动返回上一页
-  if (dataList.value.length === 0 && searchParams.current > 1) {
-    searchParams.current -= 1
+  if (dataList.value.length === 0 && searchParams.value.current > 1) {
+    searchParams.value.current -= 1
     fetchData()
   }
 }
@@ -58,7 +61,7 @@ const fetchData = async () => {
     loading.value = true
     const params = {
       spaceId: props.id,
-      ...searchParams
+      ...searchParams.value
     }
     const res = await listPictureVoByPageUsingPost(params)
     if (res.data.code === 0 && res.data.data) {
@@ -77,10 +80,39 @@ const fetchData = async () => {
 
 // 分页变化处理
 const onPageChange = (page: number, pageSize: number) => {
-  searchParams.current = page
-  searchParams.pageSize = pageSize
+  searchParams.value.current = page
+  searchParams.value.pageSize = pageSize
   fetchData()
 }
+
+
+//搜索
+const onSearch = (newSearchParams: API.PictureQueryRequest) => {
+  searchParams.value = {
+    ...searchParams.value,
+    ...newSearchParams,
+    current: 1
+  }
+  fetchData()
+
+}
+
+const onColorChange = async (color: string) => {
+  loading.value = true
+  const res = await searchPictureByColorUsingPost({
+    picColor: color,
+    spaceId: props.id
+  })
+  if (res.data.code === 0 && res.data.data) {
+    const data = res.data.data ?? []
+    dataList.value = data
+    total.value = data.length
+  } else {
+    message.error('获取数据失败，' + res.data.message)
+  }
+  loading.value = false
+}
+
 
 onMounted(async () => {
   await fetchSpaceDetail()
@@ -108,6 +140,14 @@ onMounted(async () => {
 
       </a-space>
     </a-flex>
+    <div style="margin-bottom: 16px">
+    </div>
+    <!--搜索表单-->
+    <picture-search-form :on-search="onSearch"></picture-search-form>
+    <!-- 按颜色搜索 -->
+    <a-form-item label="按颜色搜索" style="margin-top: 16px">
+      <color-picker format="hex" @pureColorChange="onColorChange" />
+    </a-form-item>
 
     <!-- 图片列表 -->
     <PictureList

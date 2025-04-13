@@ -1,133 +1,3 @@
-<template>
-  <div id="pictureManager">
-    <a-flex justify="space-between">
-      <h2>图片管理</h2>
-      <a-space>
-        <a-button type="primary" href="/add_picture" target="_blank">
-          创建图片
-        </a-button>
-        <a-button type="primary" href="/add_picture/batch" target="_blank" ghost>批量创建图片</a-button>
-        <a-popconfirm
-          title="确认要刷新所有缓存吗? 注意:此操作是危险操作!"
-          @confirm="handleClearCache"
-        >
-          <a-button danger :loading="clearing">
-            <template #icon>
-              <ReloadOutlined />
-            </template>
-            {{ clearing ? '正在清理...' : '强制刷新缓存' }}
-          </a-button>
-        </a-popconfirm>
-      </a-space>
-    </a-flex>
-    <div style="margin-bottom: 16px"></div>
-    <!-- 搜索表单 -->
-    <a-form layout="inline" :model="searchParams" @finish="doSearch" style="margin-bottom: 20px">
-      <a-form-item label="关键词">
-        <a-input v-model:value="searchParams.searchText" placeholder="从名称和简介搜索" allow-clear />
-      </a-form-item>
-      <a-form-item label="类型">
-        <a-input v-model:value="searchParams.category" placeholder="输入类型" allow-clear />
-      </a-form-item>
-      <a-form-item label="标签">
-        <a-select v-model:value="searchParams.tags" mode="tags" style="min-width: 180px" placeholder="请选择标签"
-                  allow-clear>
-        </a-select>
-      </a-form-item>
-      <a-form-item name="reviewStatus" label="审核状态">
-        <a-select
-          style="min-width: 180px"
-          v-model:value="searchParams.reviewStatus"
-          placeholder="请选择审核状态"
-          :options="PIC_REVIEW_STATUS_OPTIONS"
-          allow-clear
-        ></a-select>
-      </a-form-item>
-      <a-form-item>
-        <a-button type="primary" html-type="submit">搜索</a-button>
-      </a-form-item>
-    </a-form>
-
-    <!-- 表格 -->
-    <a-table :columns="columns" :data-source="dataList" :pagination="pagination" @change="doTableChange">
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'url'">
-          <a-image :src="record.url" :width="80"></a-image>
-        </template>
-
-        <template v-if="column.dataIndex === 'tags'">
-          <a-space wrap>
-            <a-tag v-for="tag in JSON.parse(record.tags || '[]')" :key="tag">{{ tag }}</a-tag>
-          </a-space>
-        </template>
-
-        <template v-if="column.dataIndex === 'picInfo'">
-          <div>格式：{{ record.picFormat }}</div>
-          <div>宽度：{{ record.picWidth }}</div>
-          <div>高度：{{ record.picHeight }}</div>
-          <div>宽高比：{{ record.picScale }}</div>
-          <div>大小：{{ (record.picSize / 1024).toFixed(2) }}KB</div>
-        </template>
-
-        <template v-if="column.dataIndex === 'reviewMessage'">
-          <div>审核状态：{{ PIC_REVIEW_STATUS_MAP[record.reviewStatus] }}</div>
-          <div>审核信息：{{ record.reviewMessage }}</div>
-          <div>审核人：{{ record.reviewerId }}</div>
-          <div v-if="record.reviewTime">审核时间：{{ dayjs(record.reviewTime).format('YYYY-MM-DD HH:mm:ss') }}</div>
-        </template>
-
-        <template v-else-if="column.dataIndex === 'pictureRole'">
-          <div v-if="record.pictureRole === 'admin'">
-            <a-tag color="green">管理员</a-tag>
-          </div>
-          <div v-else>
-            <a-tag color="blue">普通图片</a-tag>
-          </div>
-        </template>
-
-        <template v-if="column.dataIndex === 'createTime'">
-          {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
-        </template>
-
-        <template v-if="column.dataIndex === 'editTime'">
-          {{ dayjs(record.editTime).format('YYYY-MM-DD HH:mm:ss') }}
-        </template>
-
-        <template v-else-if="column.key === 'action'">
-          <a-space wrap>
-            <a-button
-              type="link"
-              v-if="record.reviewStatus !== PIC_REVIEW_STATUS_ENUM.PASS"
-              target="_blank"
-              @click="handlerReview(record,PIC_REVIEW_STATUS_ENUM.PASS)"
-            >
-              通过
-            </a-button>
-            <a-button
-              type="link"
-              danger
-              v-if="record.reviewStatus !== PIC_REVIEW_STATUS_ENUM.REJECT"
-              target="_blank"
-              @click="handlerReview(record,PIC_REVIEW_STATUS_ENUM.REJECT)"
-            >
-              拒绝
-            </a-button>
-
-            <a-button type="link" :href="`/add_picture?id=${record.id}`" target="_blank">编辑</a-button>
-            <a-popconfirm title="确认要删除该图片吗？"
-                          ok-text="确认"
-                          cancel-text="取消"
-                          @confirm="doDelete(record.id)"
-                          @cancel="message.info('操作已取消')">
-              <a-button danger>删除</a-button>
-            </a-popconfirm>
-
-          </a-space>
-        </template>
-      </template>
-    </a-table>
-  </div>
-</template>
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import {
@@ -313,4 +183,135 @@ onMounted(() => {
 })
 
 </script>
+<template>
+  <div id="pictureManager">
+    <a-flex justify="space-between">
+      <h2>图片管理</h2>
+      <a-space>
+        <a-button type="primary" href="/add_picture" target="_blank">
+          创建图片
+        </a-button>
+        <a-button type="primary" href="/add_picture/batch" target="_blank" ghost>批量创建图片</a-button>
+        <a-popconfirm
+          title="确认要刷新所有缓存吗? 注意:此操作是危险操作!"
+          @confirm="handleClearCache"
+        >
+          <a-button danger :loading="clearing">
+            <template #icon>
+              <ReloadOutlined />
+            </template>
+            {{ clearing ? '正在清理...' : '强制刷新缓存' }}
+          </a-button>
+        </a-popconfirm>
+      </a-space>
+    </a-flex>
+    <div style="margin-bottom: 16px"></div>
+    <!-- 搜索表单 -->
+    <a-form layout="inline" :model="searchParams" @finish="doSearch" style="margin-bottom: 20px">
+      <a-form-item label="关键词">
+        <a-input v-model:value="searchParams.searchText" placeholder="从名称和简介搜索" allow-clear />
+      </a-form-item>
+      <a-form-item label="类型">
+        <a-input v-model:value="searchParams.category" placeholder="输入类型" allow-clear />
+      </a-form-item>
+      <a-form-item label="标签">
+        <a-select v-model:value="searchParams.tags" mode="tags" style="min-width: 180px" placeholder="请选择标签"
+                  allow-clear>
+        </a-select>
+      </a-form-item>
+      <a-form-item name="reviewStatus" label="审核状态">
+        <a-select
+          style="min-width: 180px"
+          v-model:value="searchParams.reviewStatus"
+          placeholder="请选择审核状态"
+          :options="PIC_REVIEW_STATUS_OPTIONS"
+          allow-clear
+        ></a-select>
+      </a-form-item>
+      <a-form-item>
+        <a-button type="primary" html-type="submit">搜索</a-button>
+      </a-form-item>
+    </a-form>
+
+    <!-- 表格 -->
+    <a-table :columns="columns" :data-source="dataList" :pagination="pagination" @change="doTableChange">
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.dataIndex === 'url'">
+          <a-image :src="record.url" :width="80"></a-image>
+        </template>
+
+        <template v-if="column.dataIndex === 'tags'">
+          <a-space wrap>
+            <a-tag v-for="tag in JSON.parse(record.tags || '[]')" :key="tag">{{ tag }}</a-tag>
+          </a-space>
+        </template>
+
+        <template v-if="column.dataIndex === 'picInfo'">
+          <div>格式：{{ record.picFormat }}</div>
+          <div>宽度：{{ record.picWidth }}</div>
+          <div>高度：{{ record.picHeight }}</div>
+          <div>宽高比：{{ record.picScale }}</div>
+          <div>大小：{{ (record.picSize / 1024).toFixed(2) }}KB</div>
+        </template>
+
+        <template v-if="column.dataIndex === 'reviewMessage'">
+          <div>审核状态：{{ PIC_REVIEW_STATUS_MAP[record.reviewStatus] }}</div>
+          <div>审核信息：{{ record.reviewMessage }}</div>
+          <div>审核人：{{ record.reviewerId }}</div>
+          <div v-if="record.reviewTime">审核时间：{{ dayjs(record.reviewTime).format('YYYY-MM-DD HH:mm:ss') }}</div>
+        </template>
+
+        <template v-else-if="column.dataIndex === 'pictureRole'">
+          <div v-if="record.pictureRole === 'admin'">
+            <a-tag color="green">管理员</a-tag>
+          </div>
+          <div v-else>
+            <a-tag color="blue">普通图片</a-tag>
+          </div>
+        </template>
+
+        <template v-if="column.dataIndex === 'createTime'">
+          {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+        </template>
+
+        <template v-if="column.dataIndex === 'editTime'">
+          {{ dayjs(record.editTime).format('YYYY-MM-DD HH:mm:ss') }}
+        </template>
+
+        <template v-else-if="column.key === 'action'">
+          <a-space wrap>
+            <a-button
+              type="link"
+              v-if="record.reviewStatus !== PIC_REVIEW_STATUS_ENUM.PASS"
+              target="_blank"
+              @click="handlerReview(record,PIC_REVIEW_STATUS_ENUM.PASS)"
+            >
+              通过
+            </a-button>
+            <a-button
+              type="link"
+              danger
+              v-if="record.reviewStatus !== PIC_REVIEW_STATUS_ENUM.REJECT"
+              target="_blank"
+              @click="handlerReview(record,PIC_REVIEW_STATUS_ENUM.REJECT)"
+            >
+              拒绝
+            </a-button>
+
+            <a-button type="link" :href="`/add_picture?id=${record.id}`" target="_blank">编辑</a-button>
+            <a-popconfirm title="确认要删除该图片吗？"
+                          ok-text="确认"
+                          cancel-text="取消"
+                          @confirm="doDelete(record.id)"
+                          @cancel="message.info('操作已取消')">
+              <a-button danger>删除</a-button>
+            </a-popconfirm>
+
+          </a-space>
+        </template>
+      </template>
+    </a-table>
+  </div>
+</template>
+
 

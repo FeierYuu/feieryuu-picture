@@ -31,32 +31,44 @@ const fetchSpaceLevelList = async () => {
 const handlerSubmit = async (values: any) => {
   loading.value = true
   const spaceId = space.value?.id
-  let res
-  //有spaceId 就是更新
-  if (spaceId) {
-    res = await updateSpaceUsingPost({
-      id: spaceId,
-      ...spaceForm
-    })
-  } else {
-    //否则就是创建
-    res = await addSpaceUsingPost({
-      ...spaceForm
-    })
+  try {
+    let res
+    //有spaceId 就是更新
+    if (spaceId) {
+      res = await updateSpaceUsingPost({
+        id: spaceId,
+        ...spaceForm
+      })
+      if (res.data.code === 0 && res.data.data) {
+        message.success('更新成功')
+        //跳转首页
+        router.push
+        ({
+          path: '/'
+        })
+      }
+    } else {
+      //否则就是创建
+      res = await addSpaceUsingPost({
+        ...spaceForm
+      })
+      if (res.data.code === 0 && res.data.data) {
+        message.success('创建成功')
+        //跳转到空间详情页
+        router.push
+        ({
+          path: `/space/${res.data.data}`
+        })
+      }
+    }
+    if (res.data.code !== 0) {
+      message.error('操作失败：' + (res.data.message || '未知错误'))
+    }
+  } catch (error) {
+    message.error('系统错误' + (error.message))
+  } finally {
+    loading.value = false
   }
-
-  //操作成功
-  if (res.data.code === 0 && res.data.data) {
-    message.success('创建成功')
-    //跳转到空间详情页
-    router.push
-    ({
-      path: `/space/${res.data.data}`
-    })
-  } else {
-    message.error('操作失败' + res.data.message)
-  }
-  loading.value = false
 }
 
 

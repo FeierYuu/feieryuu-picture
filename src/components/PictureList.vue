@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Waterfall } from 'vue-waterfall-plugin-next'
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons-vue'
+import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons-vue'
 import router from '@/router'
 import { deletePictureUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
@@ -79,6 +79,13 @@ const handleDelete = async (picture: API.PictureVO, e: Event) => {
   console.log('删除图片', picture.id)
 }
 
+// 以图搜图搜索
+const doSearch = (picture, e) => {
+  e.stopPropagation()
+  window.open(`/search_picture?pictureId=${picture.id}`)
+}
+
+
 /**
  * Tags处理
  * @param tags
@@ -104,7 +111,7 @@ const formatTags = (tags: any) => {
       <Waterfall
         :list="dataList"
         :width="250"
-        :gutter="20"
+        :gutter="25"
         :lazyload="true"
         align="center"
       >
@@ -115,27 +122,46 @@ const formatTags = (tags: any) => {
                 <div class="image-overlay">
                   <!-- 操作按钮容器 -->
                   <div class="action-buttons" @click.stop v-if="showOp">
-                    <a-button
-                      type="primary"
-                      shape="circle"
-                      @click="handleEdit(picture, $event)"
-                      class="edit-btn"
-                    >
-                      <template #icon>
-                        <EditOutlined />
-                      </template>
-                    </a-button>
-                    <a-button
-                      danger
-                      type="primary"
-                      shape="circle"
-                      @click="handleDelete(picture, $event)"
-                      class="delete-btn"
-                    >
-                      <template #icon>
-                        <DeleteOutlined />
-                      </template>
-                    </a-button>
+                    <a-tooltip title="寻找相似图片" placement="top">
+                      <a-button
+                        type="primary"
+                        shape="circle"
+                        @click="doSearch(picture, $event)"
+                        class="edit-btn"
+                      >
+                        <template #icon>
+                          <SearchOutlined />
+                        </template>
+                      </a-button>
+                    </a-tooltip>
+                    <a-tooltip title="编辑图片" placement="top">
+
+                      <a-button
+                        type="primary"
+                        shape="circle"
+                        @click="handleEdit(picture, $event)"
+                        class="edit-btn"
+                      >
+                        <template #icon>
+                          <EditOutlined />
+                        </template>
+                      </a-button>
+                    </a-tooltip>
+                    <a-tooltip title="删除图片" placement="top">
+
+                      <a-button
+                        danger
+                        type="primary"
+                        shape="circle"
+                        @click="handleDelete(picture, $event)"
+                        class="delete-btn"
+                      >
+                        <template #icon>
+                          <DeleteOutlined />
+                        </template>
+                      </a-button>
+                    </a-tooltip>
+
                   </div>
 
                   <!-- 标签区域 -->
@@ -162,10 +188,6 @@ const formatTags = (tags: any) => {
 
 <style scoped>
 /* 基础样式 */
-.picture-list {
-  padding: 16px;
-}
-
 .waterfall-item {
   margin-bottom: 16px;
   position: relative;
@@ -301,4 +323,6 @@ const formatTags = (tags: any) => {
 .waterfall-item :deep(.ant-card):hover {
   transform: translateY(-3px);
 }
+
+
 </style>

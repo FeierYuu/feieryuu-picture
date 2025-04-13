@@ -2,10 +2,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
-import { downloadImage, formatSize } from '../utils'
+import { downloadImage, formatSize, toHexColor } from '../utils'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import router from '@/router'
-import { DownloadOutlined } from '@ant-design/icons-vue'
+import { DownloadOutlined, SearchOutlined } from '@ant-design/icons-vue'
 import { useRoute } from 'vue-router'
 
 
@@ -84,6 +84,13 @@ const doDownload = () => {
 }
 
 
+// 以图搜图搜索
+const doSearch = (picture, e) => {
+  e.stopPropagation()
+  window.open(`/search_picture?pictureId=${picture.id}`)
+}
+
+
 // 返回首页
 const handleBack = () => {
   try {
@@ -98,6 +105,7 @@ const handleBack = () => {
     router.push('/')
   }
 }
+
 
 </script>
 
@@ -152,6 +160,21 @@ const handleBack = () => {
             <a-descriptions-item label="大小">
               {{ formatSize(picture.picSize) }}
             </a-descriptions-item>
+
+            <a-descriptions-item label="主色调">
+              <a-space>
+                {{ picture.picColor ?? '-' }}
+                <div
+                  v-if="picture.picColor"
+                  :style="{
+                    backgroundColor: toHexColor(picture.picColor),
+                    width: '16px',
+                    height: '16px',
+                  }"
+                />
+              </a-space>
+            </a-descriptions-item>
+
           </a-descriptions>
           <!-- 图片操作-->
           <a-space wrap>
@@ -177,6 +200,13 @@ const handleBack = () => {
             </a-button>
             <!-- 在操作按钮区添加返回按钮 -->
             <a-button @click="handleBack" style="margin-right: 8px">返回列表</a-button>
+            <a-button type="primary" @click="doSearch(picture, $event)">
+              <template #icon>
+                <SearchOutlined />
+              </template>
+              寻找相似图片
+            </a-button>
+
           </a-space>
 
         </a-card>

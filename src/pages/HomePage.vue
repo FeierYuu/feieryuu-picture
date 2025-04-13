@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { type Component, computed, onMounted, reactive, ref } from 'vue'
 import {
-  listPictureTagCategoryUsingGet, listPictureVoByPageUsingPost,
-  listPictureVoByPageWithCacheUsingPost
+  listPictureTagCategoryUsingGet, listPictureVoByPageUsingPost
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 
@@ -155,8 +154,8 @@ const getCurrentSearchState = () => ({
 // 页面加载时获取数据
 onMounted(async () => {
   await getTagCategoryOptions() // 先获取标签数据
-  restoreSearchState()          // 再恢复状态
-  fetchData()                  // 最后获取数据
+  await restoreSearchState()          // 再恢复状态
+  await fetchData()                  // 最后获取数据
 })
 
 

@@ -13,6 +13,7 @@ const formData = reactive<API.PictureUploadByBatchRequest>({
 const loading = ref(false)
 
 
+
 /**
  * 提交表单
  * @param values
@@ -90,6 +91,13 @@ onMounted(() => {
     <!-- 图片表单-->
     <a-form name="formData" layout="vertical" :model="formData" @finish="handlerSubmit"
             style="margin-bottom: 20px">
+      <a-form-item name="source" label="下载源">
+        <a-radio-group v-model:value="formData.source" button-style="solid">
+          <a-radio-button value="bizhi">壁纸汇</a-radio-button>
+          <a-radio-button value="bing">必应图片</a-radio-button>
+          <a-radio-button value="wallhere">wallhere</a-radio-button>
+        </a-radio-group>
+      </a-form-item>
       <a-form-item name="searchText" label="关键词">
         <a-input v-model:value="formData.searchText" placeholder="请输入关键词" allow-clear />
       </a-form-item>
