@@ -31,27 +31,22 @@ import com.feieryuu.picturebackend.service.PictureService;
 import com.feieryuu.picturebackend.mapper.PictureMapper;
 import com.feieryuu.picturebackend.service.SpaceService;
 import com.feieryuu.picturebackend.service.UserService;
-import com.feieryuu.picturebackend.util.CrawlPictureTool;
+import com.feieryuu.picturebackend.util.ColorSimilarUtils;
+import com.feieryuu.picturebackend.util.HexColorExpander;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
 import org.jsoup.internal.StringUtil;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
+import java.awt.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -179,7 +174,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         picture.setPicHeight(uploadPictureResult.getPicHeight());
         picture.setPicScale(uploadPictureResult.getPicScale());
         picture.setPicFormat(uploadPictureResult.getPicFormat());
+//        picture.setPicColor(uploadPictureResult.getPicColor());
+        picture.setPicColor(HexColorExpander.expandHexColor(uploadPictureResult.getPicColor()));
         picture.setUserId(loginUser.getId());
+
 
         //保存分类 和标签
         picture.setTags(JSONUtil.toJsonStr(pictureUploadRequest.getTags()));
@@ -404,84 +402,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
 
-//    /**
-//     * 批量爬取图片(必应) 已优化爬取点击之后的高清图
-//     * @param pictureUploadByBatchRequest
-//     * @param loginUser
-//     * @return
-//     */
-//    @Override
-//    public Integer uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser) {
-//        // 1. 校验参数
-//        String searchText = pictureUploadByBatchRequest.getSearchText();
-//        Integer count = pictureUploadByBatchRequest.getCount();
-//        ThrowUtils.throwIf(count > 30, ErrorCode.PARAMS_ERROR, "最多只能抓取30张图片");
-//        // 名称前缀默认等于搜索词
-//        String namePrefix = pictureUploadByBatchRequest.getNamePrefix();
-//        if (StrUtil.isBlank(namePrefix)) {
-//            namePrefix = searchText;
-//        }
-//
-//        // 2. 抓取内容
-//        String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&mmasync=1", searchText);
-//        Document document;
-//        try {
-//            document = Jsoup.connect(fetchUrl)
-//                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-//                    .get();
-//        } catch (IOException e) {
-//            log.error("获取页面失败", e);
-//            throw new BusinessException(ErrorCode.OPERATION_ERROR, "获取页面失败");
-//        }
-//
-//        // 3. 解析内容
-//        Elements imgElements = document.select(".iuscp.isv");
-//        int uploadCount = 0;
-//
-//        // 遍历元素，依次上传图片
-//        for (Element imgElement : imgElements) {
-//            if (uploadCount >= count) {
-//                break;
-//            }
-//
-//            // 获取图片的 m 属性（包含高清图片 URL 的 JSON 数据）
-//            String mAttr = imgElement.select(".iusc").attr("m");
-//            if (StringUtil.isBlank(mAttr)) {
-//                log.info("当前图片的 m 属性为空, 已跳过");
-//                continue;
-//            }
-//
-//            // 解析 m 属性中的 JSON 数据，获取高清图片 URL
-//            try {
-//                Map<String, Object> map = JSONUtil.toBean(mAttr, Map.class);
-//                String highResFileUrl = (String) map.get("murl");
-//                if (StringUtil.isBlank(highResFileUrl)) {
-//                    log.info("高清图片链接为空, 已跳过");
-//                    continue;
-//                }
-//
-//                // 处理图片的地址，防止转义和对象存储的冲突问题
-//                int questionMarkIndex = highResFileUrl.indexOf("?");
-//                if (questionMarkIndex > -1) {
-//                    highResFileUrl = highResFileUrl.substring(0, questionMarkIndex);
-//                }
-//
-//                // 上传图片
-//                PictureUploadRequest pictureUploadRequest = new PictureUploadRequest();
-//                pictureUploadRequest.setFileUrl(highResFileUrl);
-//                pictureUploadRequest.setPicName(namePrefix + (uploadCount + 1));
-//                pictureUploadRequest.setCategory(pictureUploadByBatchRequest.getCategory());
-//                pictureUploadRequest.setTags(pictureUploadByBatchRequest.getTags());
-//                PictureVO pictureVO = this.uploadPicture(highResFileUrl, pictureUploadRequest, loginUser);
-//                log.info("图片上传成功, id={}", pictureVO.getId());
-//                uploadCount++;
-//            } catch (Exception e) {
-//                log.error("图片上传失败", e);
-//            }
-//        }
-//
-//        return uploadCount;
-//    }
 
     /**
      * 批量爬取图片（壁纸汇高质量版）
@@ -595,6 +515,52 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             }
         }
     }
+
+    @Override
+    public List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser) {
+        // 1. 校验参数
+        ThrowUtils.throwIf(spaceId == null || StrUtil.isBlank(picColor), ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
+        // 2. 校验空间权限
+        Space space = spaceService.getById(spaceId);
+        ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+        if (!loginUser.getId().equals(space.getUserId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间访问权限");
+        }
+        // 3. 查询该空间下所有图片（必须有主色调）
+        List<Picture> pictureList = this.lambdaQuery()
+                .eq(Picture::getSpaceId, spaceId)
+                .isNotNull(Picture::getPicColor)
+                .list();
+        // 如果没有图片，直接返回空列表
+        if (CollUtil.isEmpty(pictureList)) {
+            return Collections.emptyList();
+        }
+        // 将目标颜色转为 Color 对象
+        Color targetColor = Color.decode(picColor);
+        // 4. 计算相似度并排序
+        List<Picture> sortedPictures = pictureList.stream()
+                .sorted(Comparator.comparingDouble(picture -> {
+                    // 提取图片主色调
+                    String hexColor = picture.getPicColor();
+                    // 没有主色调的图片放到最后
+                    if (StrUtil.isBlank(hexColor)) {
+                        return Double.MAX_VALUE;
+                    }
+                    Color pictureColor = Color.decode(hexColor);
+                    // 越大越相似
+                    return -ColorSimilarUtils.calculateSimilarity(targetColor, pictureColor);
+                }))
+                // 取前 12 个
+                .limit(12)
+                .collect(Collectors.toList());
+
+        // 转换为 PictureVO
+        return sortedPictures.stream()
+                .map(PictureVO::objToVo)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public void validPicture(Picture picture) {

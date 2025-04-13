@@ -66,7 +66,7 @@ public abstract class PictureUploadTemplate {
                      thumbnailCiObject = objectList.get(1);
                 }
                 //封装压缩图的文件结果
-                return buildResult(originFilename,compressCiObject,thumbnailCiObject);
+                return buildResult(originFilename,compressCiObject,thumbnailCiObject,imageInfo);
             }
             // 5. 封装返回结果
             return buildResult(originFilename, file, uploadPath, imageInfo);  
@@ -84,9 +84,10 @@ public abstract class PictureUploadTemplate {
      * @param originFilename 原始文件名
      * @param compressCiObject 压缩后的文件对象
      * @param thumbnailCiObject 缩略图的文件对象
+     * @param imageInfo 图片信息
      * @return
      */
-    private UploadPictureResult buildResult(String originFilename, CIObject compressCiObject,CIObject thumbnailCiObject) {
+    private UploadPictureResult buildResult(String originFilename, CIObject compressCiObject,CIObject thumbnailCiObject,ImageInfo imageInfo) {
         UploadPictureResult uploadPictureResult = new UploadPictureResult();
         int picWidth = compressCiObject.getWidth();
         int picHeight = compressCiObject.getHeight();
@@ -97,7 +98,9 @@ public abstract class PictureUploadTemplate {
         uploadPictureResult.setPicHeight(picHeight);
         uploadPictureResult.setPicScale(picScale);
         uploadPictureResult.setPicFormat(compressCiObject.getFormat());
+        uploadPictureResult.setPicColor(imageInfo.getAve());
         uploadPictureResult.setPicSize(compressCiObject.getSize().longValue());
+
         //设置压缩后的原图地址
         uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + compressCiObject.getKey());
         //设置缩略图地址
@@ -135,7 +138,8 @@ public abstract class PictureUploadTemplate {
         uploadPictureResult.setPicScale(picScale);  
         uploadPictureResult.setPicFormat(imageInfo.getFormat());  
         uploadPictureResult.setPicSize(FileUtil.size(file));  
-        uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);  
+        uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
+        uploadPictureResult.setPicColor(imageInfo.getAve());
         return uploadPictureResult;  
     }  
   
