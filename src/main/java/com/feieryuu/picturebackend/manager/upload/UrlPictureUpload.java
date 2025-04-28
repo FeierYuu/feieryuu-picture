@@ -27,7 +27,7 @@ public class UrlPictureUpload extends PictureUploadTemplate {
         // 从 URL 中提取文件名
         // FileUtil.mainName(fileUrl); 会导致获取不到文件名的后缀 采用getName 获取完整的文件名
 //        return FileUtil.mainName(fileUrl);
-        return  FileUtil.getName(fileUrl);
+        return  getValidFileName(fileUrl);
     }  
   
     @Override  
@@ -35,5 +35,12 @@ public class UrlPictureUpload extends PictureUploadTemplate {
         String fileUrl = (String) inputSource;  
         // 下载文件到临时目录  
         HttpUtil.downloadFile(fileUrl, file);
-    }  
+    }
+    private String getValidFileName(String orginFileName){
+        int queryIndex = orginFileName.indexOf("?");
+        if(queryIndex != -1){
+           orginFileName = orginFileName.substring(0, queryIndex);
+        }
+        return orginFileName;
+    }
 }

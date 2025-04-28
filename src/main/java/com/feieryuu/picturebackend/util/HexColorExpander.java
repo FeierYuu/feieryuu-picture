@@ -3,38 +3,48 @@ package com.feieryuu.picturebackend.util;
 public class HexColorExpander {
 
     public static String expandHexColor(String compressed) {
-        // 去除可能存在的0x前缀
-        String input = compressed.startsWith("0x") ? compressed.substring(2) : compressed;
+        // 移除前缀并初始化参数
+        String input = compressed.replaceFirst("^0x", "");
         int length = input.length();
-        // 长度为3直接返回
+
+        // 特殊长度处理
         if (length == 3) {
             return "0x000000";
         }
-        int index = 0;
-        StringBuilder expanded = new StringBuilder();
 
-        // 处理三个颜色分量
-        for (int i = 0; i < 3; i++) {
-            char current = input.charAt(index);
-            if (current == '0') {
-                // 当前分量是00的情况
+        StringBuilder expanded = new StringBuilder(6); // 预分配6字符容量
+        int position = 0;
+
+        // 处理三个颜色通道
+        for (int channel = 0; channel < 3; channel++) {
+            // 处理长度不足的情况
+            if (position >= length) {
                 expanded.append("00");
-                index++;
-            } else {
-                // 正常分量处理（可能包含补零）
-                if (index + 1 < length) {
-                    expanded.append(current).append(input.charAt(index + 1));
-                    index += 2;
+                continue;
+            }
+
+            char current = input.charAt(position);
+
+            // 零值简写处理
+            if (current == '0') {
+                expanded.append("00");
+                position++;
+            }
+            // 正常值处理
+            else {
+                // 获取双字符值，不足时补零
+                if (position + 1 < length) {
+                    expanded.append(current).append(input.charAt(position + 1));
                 } else {
-                    // 最后一个字符单独处理，补零
                     expanded.append(current).append('0');
-                    index += 2;
                 }
+                position += 2;
             }
         }
 
         return "0x" + expanded.toString();
     }
+
 
     public static void main(String[] args) {
         // 测试用例

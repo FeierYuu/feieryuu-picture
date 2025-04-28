@@ -2,6 +2,8 @@ package com.feieryuu.picturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.feieryuu.picturebackend.api.aliyun.model.CreateOutPaintingTaskRequest;
+import com.feieryuu.picturebackend.api.aliyun.model.CreateOutPaintingTaskResponse;
 import com.feieryuu.picturebackend.model.dto.picture.*;
 import com.feieryuu.picturebackend.model.dto.user.UserQueryRequest;
 import com.feieryuu.picturebackend.model.entity.Picture;
@@ -119,4 +121,20 @@ public interface PictureService extends IService<Picture> {
      * @return
      */
     List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
+
+
+    /**
+     * 批量编辑图片
+     * @param pictureEditByBatchRequest
+     * @param loginUser
+     */
+    void editPictureByBatch(PictureEditByBatchRequest pictureEditByBatchRequest, User loginUser);
+
+
+    /**
+     * ai扩图
+     * @param createPictureOutPaintingTaskRequest
+     * @return
+     */
+    CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest,User loginUser);
 }
