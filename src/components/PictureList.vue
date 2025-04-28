@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Waterfall } from 'vue-waterfall-plugin-next'
-import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons-vue'
+import { DeleteOutlined, EditOutlined, SearchOutlined, ShareAltOutlined } from '@ant-design/icons-vue'
 import router from '@/router'
 import { deletePictureUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
+import { ref } from 'vue'
+import ShareModel from '@/components/ShareModal.vue'
 
 interface Props {
   dataList?: API.PictureVO[]
@@ -86,6 +88,22 @@ const doSearch = (picture, e) => {
 }
 
 
+// 分享弹窗引用
+const shareModalRef = ref()
+// 分享链接
+const shareLink = ref<string>()
+
+// 分享
+const doShare = (picture: API.PictureVO, e: Event) => {
+  e.preventDefault()
+  e.stopPropagation()
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.id}`
+  if (shareModalRef.value) {
+    shareModalRef.value.openModal()
+  }
+}
+
+
 /**
  * Tags处理
  * @param tags
@@ -122,6 +140,20 @@ const formatTags = (tags: any) => {
                 <div class="image-overlay">
                   <!-- 操作按钮容器 -->
                   <div class="action-buttons" @click.stop v-if="showOp">
+                    <a-tooltip title="分享图片" placement="top">
+                      <a-button
+                        type="primary"
+                        shape="circle"
+                        @click="doShare(picture, $event)"
+                        class="edit-btn"
+                      >
+                        <template #icon>
+                          <ShareAltOutlined />
+                        </template>
+                      </a-button>
+                    </a-tooltip>
+
+
                     <a-tooltip title="寻找相似图片" placement="top">
                       <a-button
                         type="primary"
@@ -177,7 +209,10 @@ const formatTags = (tags: any) => {
               </template>
             </a-card>
           </div>
+          <ShareModel ref="shareModalRef" :link="shareLink" />
         </template>
+
+
       </Waterfall>
     </template>
     <template v-else>

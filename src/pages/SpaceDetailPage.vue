@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { h, onMounted, ref } from 'vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
 import { listPictureVoByPageUsingPost, searchPictureByColorUsingPost } from '@/api/pictureController.ts'
@@ -8,6 +8,8 @@ import PictureList from '@/components/PictureList.vue'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
+import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
+import { EditOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps<{ id: string | number }>()
 const space = ref<API.SpaceVO>({})
@@ -114,6 +116,20 @@ const onColorChange = async (color: string) => {
 }
 
 
+// 批量修改图片信息成功回调
+const batchEditPictureModalRef = ref()
+const onBatchEditPictureSuccess = () => {
+  fetchData()
+}
+
+//打开编辑弹窗
+const doBatchEdit = () => {
+  if (batchEditPictureModalRef.value) {
+    batchEditPictureModalRef.value.openModal()
+    console.log('打开弹窗')
+  }
+}
+
 onMounted(async () => {
   await fetchSpaceDetail()
   await fetchData()
@@ -136,6 +152,9 @@ onMounted(async () => {
 
         <a-button type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
           + 创建图片
+        </a-button>
+        <a-button :icon="h(EditOutlined)" @click="doBatchEdit" target="_blank">
+          批量编辑
         </a-button>
 
       </a-space>
@@ -168,6 +187,13 @@ onMounted(async () => {
       @change="onPageChange"
       show-size-changer
     />
+    <BatchEditPictureModal
+      ref="batchEditPictureModalRef"
+      :spaceId="id"
+      :pictureList="dataList"
+      :onSuccess="onBatchEditPictureSuccess"
+    />
+
   </div>
 </template>
 

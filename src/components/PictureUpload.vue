@@ -13,6 +13,7 @@
         <div class="ant-upload-text">点击或拖拽上传图片</div>
       </div>
     </a-upload>
+
   </div>
 
 
@@ -21,7 +22,6 @@
 import { ref } from 'vue'
 import { PlusOutlined, LoadingOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import type { UploadChangeParam, UploadProps } from 'ant-design-vue'
 import { uploadPictureUsingPost } from '@/api/pictureController.ts'
 
 
@@ -33,6 +33,24 @@ interface Props {
 
 const props = defineProps<Props>()
 const loading = ref<boolean>(false)
+
+
+/**
+ * 上传前的校验
+ */
+const beforeUpload = (file: File) => {  // 注意这里参数类型改为 File
+  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+  if (!isJpgOrPng) {
+    message.error('不支持上传的格式: 推荐jpg 或 png')
+  }
+
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) {
+    message.error('图片大小不能超过2MB')
+  }
+
+  return isJpgOrPng && isLt2M
+}
 
 /**
  * 上传文件
@@ -55,25 +73,6 @@ const handleUpload = async ({ file }: any) => {
     console.log('图片上传失败' + e.message)
   }
   loading.value = false
-
-
-  /**
-   * 上传前的校验
-   * @param file
-   */
-  const beforeUpload = (file: UploadProps['fileList'][number]) => {
-    //校验图片个数
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
-    if (!isJpgOrPng) {
-      message.error('不支持上传的格式: 推荐jpg 或 png')
-    }
-    //校验图片大小
-    const isLt2M = file.size / 1024 / 1024 < 2
-    if (!isLt2M) {
-      message.error('图片大小不能超过2MB')
-    }
-    return isJpgOrPng && isLt2M
-  }
 }
 </script>
 <style scoped>
