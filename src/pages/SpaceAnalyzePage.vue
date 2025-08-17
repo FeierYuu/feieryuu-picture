@@ -49,7 +49,7 @@ const isAdmin = computed(() => {
     <a-row :gutter="[16, 16]">
       <!-- 空间使用分析 -->
       <a-col :xs="24" :md="12">
-        <SpaceUsageAnalyze :spaceId="spaceId" :queryAll="queryAll" :queryPublic="queryPublic" />
+        <SpaceUsageAna  lyze :spaceId="spaceId" :queryAll="queryAll" :queryPublic="queryPublic" />
       </a-col>
       <!-- 空间分类分析 -->
       <a-col :xs="24" :md="12">

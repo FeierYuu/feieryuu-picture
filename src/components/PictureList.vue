@@ -15,6 +15,8 @@ interface Props {
     category: string
     tags: string[]
   },
+  canEdit?: boolean
+  canDelete?: boolean,
   showOp?: boolean,
   onReload?: () => void
 }
@@ -27,6 +29,8 @@ const props = withDefaults(defineProps<Props>(), {
     category: 'all',
     tags: []
   }),
+  canEdit: false,
+  canDelete: false,
   showOp: false
 
 })
@@ -166,7 +170,7 @@ const formatTags = (tags: any) => {
                         </template>
                       </a-button>
                     </a-tooltip>
-                    <a-tooltip title="编辑图片" placement="top">
+                    <a-tooltip v-if="canEdit" title="编辑图片" placement="top">
 
                       <a-button
                         type="primary"
@@ -179,7 +183,8 @@ const formatTags = (tags: any) => {
                         </template>
                       </a-button>
                     </a-tooltip>
-                    <a-tooltip title="删除图片" placement="top">
+
+                    <a-tooltip v-if="canDelete" title="删除图片" placement="top">
 
                       <a-button
                         danger
