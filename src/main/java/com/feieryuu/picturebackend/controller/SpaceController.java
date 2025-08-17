@@ -13,6 +13,7 @@ import com.feieryuu.picturebackend.constant.UserConstant;
 import com.feieryuu.picturebackend.exception.BusinessException;
 import com.feieryuu.picturebackend.exception.ErrorCode;
 import com.feieryuu.picturebackend.exception.ThrowUtils;
+import com.feieryuu.picturebackend.manager.auth.SpaceUserAuthManager;
 import com.feieryuu.picturebackend.model.dto.space.*;
 import com.feieryuu.picturebackend.model.entity.Space;
 import com.feieryuu.picturebackend.model.entity.User;
@@ -53,6 +54,9 @@ public class SpaceController {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     private final Cache<String, String> LOCAL_CACHE =
             Caffeine.newBuilder().initialCapacity(1024)
@@ -148,8 +152,12 @@ public class SpaceController {
         // 查询数据库
         Space space = spaceService.getById(id);
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
+        SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+        User loginUser = userService.getLoginUser(request);
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        spaceVO.setPermissionList(permissionList);
         // 获取封装类
-        return ResultUtils.success(spaceService.getSpaceVO(space, request));
+        return ResultUtils.success(spaceVO);
     }
 
     /**

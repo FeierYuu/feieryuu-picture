@@ -10,6 +10,7 @@ import com.feieryuu.picturebackend.constant.UserConstant;
 import com.feieryuu.picturebackend.exception.BusinessException;
 import com.feieryuu.picturebackend.exception.ErrorCode;
 import com.feieryuu.picturebackend.exception.ThrowUtils;
+import com.feieryuu.picturebackend.manager.auth.StpKit;
 import com.feieryuu.picturebackend.model.dto.user.UserQueryRequest;
 import com.feieryuu.picturebackend.model.entity.User;
 import com.feieryuu.picturebackend.model.enums.UserRoleEnum;
@@ -102,7 +103,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
 
-        //检查张海是否存在
+        //检查账号是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
         queryWrapper.eq("userPassword", password);
@@ -113,6 +114,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         //记录用户的登入状态
         request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE,user);
+        //给sa-token 写入登入账号信息 便于空间鉴权时使用
+        StpKit.SPACE.login(user.getId());
+        StpKit.SPACE.getSession().set(UserConstant.USER_LOGIN_STATE,user);
         return this.getUserLoginVo(user);
     }
 
